@@ -48,6 +48,16 @@ struct ContentView: View {
         let answer = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         guard answer.count > 0 else { return }
 
+        guard isGreaterThanTwo(word: answer) else {
+            wordError(title: "Word is too short", message: "Needs to be 3 letters of longer")
+            return
+        }
+
+        guard isNotRootWord(word: answer) else {
+            wordError(title: "Word is the start word", message: "Needs to be original!")
+            return
+        }
+
         guard isOriginal(word: answer) else {
             wordError(title: "Word used already", message: "Be more original!")
             return
@@ -80,6 +90,14 @@ struct ContentView: View {
         }
 
         fatalError("Could not load start.txt from bundle.")
+    }
+
+    func isGreaterThanTwo(word: String) -> Bool {
+        word.count > 2
+    }
+
+    func isNotRootWord(word: String) -> Bool {
+        word != rootWord
     }
 
     func isOriginal(word: String) -> Bool {
