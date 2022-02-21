@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var usedWords = [String]()
     @State private var rootWord = ""
     @State private var newWord = ""
+    @State private var score = 0
 
     @State private var errorTitle = ""
     @State private var errorMessage = ""
@@ -22,6 +23,7 @@ struct ContentView: View {
                 Section {
                     TextField("Enter your word", text: $newWord)
                         .autocapitalization(.none)
+                    Text("Score: \(score)")
                 }
 
                 Section {
@@ -80,10 +82,13 @@ struct ContentView: View {
             usedWords.insert(answer, at: 0)
         }
 
+        score = answer.count + score
         newWord = ""
     }
 
     func startGame() {
+        score = 0
+        usedWords = []
         if let startWordsURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordsURL) {
                 let allWords = startWords.components(separatedBy: "\n")
