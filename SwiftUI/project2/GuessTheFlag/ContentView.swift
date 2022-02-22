@@ -79,7 +79,7 @@ struct ContentView: View {
             scoreTitle = "Correct"
             totalScore += 1
         } else {
-            scoreTitle = "Wrong"
+            scoreTitle = "Wrong! That’s the flag of \(countries[number])"
             totalScore -= 1
         }
 
