@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var questionCount = 0
     @State private var animationAmount = 0.0
     @State private var fadeAmount = 1.0
+    @State private var scaleAmount = 1.0
     @State private var flagSelected = 0
 
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Russia", "Spain", "UK", "US"].shuffled()
@@ -53,6 +54,7 @@ struct ContentView: View {
                             }
                             withAnimation(.easeInOut(duration: 1)) {
                                 self.fadeAmount = 0.25
+                                self.scaleAmount = 0.25
                             }
                         } label: {
                             Image(countries[number])
@@ -61,6 +63,7 @@ struct ContentView: View {
                                 .shadow(radius: 5)
                                 .rotation3DEffect(.degrees(flagSelected == number ? animationAmount: 0), axis: (x: 0, y: 1, z: 0))
                                 .opacity(flagSelected == number ? 1.0 : fadeAmount)
+                                .scaleEffect(flagSelected == number ? 1.0 : scaleAmount)
                         }
                     }
                 }
@@ -117,7 +120,8 @@ struct ContentView: View {
 
     func askQuestion() {
         withAnimation(.easeInOut(duration: 1)) {
-            self.fadeAmount = 1.00
+            self.fadeAmount = 1.0
+            self.scaleAmount = 1.0
         }
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
