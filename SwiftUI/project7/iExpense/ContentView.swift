@@ -7,6 +7,17 @@
 
 import SwiftUI
 
+extension ExpenseItem {
+    var color: Color {
+        if amount > 100 {
+            return .red
+        } else if amount > 10 {
+            return .blue
+        }
+        return .black
+    }
+}
+
 struct ContentView: View {
     @StateObject var expenses = Expenses()
     @State private var showingAddExpense = false
@@ -24,7 +35,8 @@ struct ContentView: View {
 
                         Spacer()
 
-                        Text(item.amount, format: .currency(code: "USD"))
+                        Text(item.amount, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                            .foregroundColor(item.color)
                     }
                 }
                 .onDelete(perform: removeItems)
