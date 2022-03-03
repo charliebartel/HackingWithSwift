@@ -26,7 +26,7 @@ struct ExpenseView: View {
             VStack(alignment: .leading) {
                 Text(item.name)
                     .font(.headline)
-                Text(item.type)
+                Text(item.type.rawValue)
             }
 
             Spacer()
@@ -44,14 +44,14 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             List {
-                Section("Personal") {
-                    ForEach(expenses.items.filter {$0.type == "Personal"}) { item in
+                Section(ExpenseType.personal.rawValue) {
+                    ForEach(expenses.items.filter {$0.type == .personal}) { item in
                         ExpenseView(item: item)
                     }
                     .onDelete(perform: removePersonal)
                 }
-                Section("Business") {
-                    ForEach(expenses.items.filter {$0.type == "Business"}) { item in
+                Section(ExpenseType.business.rawValue) {
+                    ForEach(expenses.items.filter {$0.type == .business}) { item in
                         ExpenseView(item: item)
                     }
                     .onDelete(perform: removeBusiness)
@@ -73,13 +73,13 @@ struct ContentView: View {
 
     func removePersonal(at offsets: IndexSet) {
         let index = offsets[offsets.startIndex]
-        let item = expenses.items.filter {$0.type == "Personal"}[index]
+        let item = expenses.items.filter {$0.type == .personal}[index]
         expenses.items.removeAll(where: { $0.id == item.id } )
     }
 
     func removeBusiness(at offsets: IndexSet) {
         let index = offsets[offsets.startIndex]
-        let item = expenses.items.filter {$0.type == "Business"}[index]
+        let item = expenses.items.filter {$0.type == .business}[index]
         expenses.items.removeAll(where: { $0.id == item.id } )
     }
 }
