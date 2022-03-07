@@ -29,7 +29,7 @@ struct Arrow: InsettableShape {
     }
 }
 
-struct ContentView: View {
+struct ArrowContentView: View {
     @State private var amount = 0.6
 
     var body: some View {
@@ -166,7 +166,7 @@ struct ColorCyclingCircle: View {
     var body: some View {
         ZStack {
             ForEach(0..<steps) { value in
-                Circle()
+                Rectangle()
                     .inset(by: Double(value))
                     .strokeBorder(
                         LinearGradient(
@@ -195,7 +195,7 @@ struct ColorCyclingCircle: View {
     }
 }
 
-struct ColorCyclingCircleContentView: View {
+struct ContentView: View {
     @State private var colorCycle = 0.0
 
     var body: some View {
