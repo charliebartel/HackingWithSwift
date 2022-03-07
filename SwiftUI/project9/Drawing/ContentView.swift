@@ -7,6 +7,67 @@
 
 import SwiftUI
 
+struct Arrow: InsettableShape {
+    var insetAmount = 0.0
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
+
+        return path
+    }
+
+    func inset(by amount: CGFloat) -> some InsettableShape {
+        var arrow = self
+        arrow.insetAmount += amount
+        return arrow
+    }
+}
+
+struct ContentView: View {
+    @State private var amount = 0.6
+
+    var body: some View {
+        VStack {
+            ZStack {
+                Arrow()
+                    .strokeBorder(.red, lineWidth: 10 * amount)
+                    .frame(width: 200)
+                    .offset(x: -50, y: -80)
+                    .blendMode(.screen)
+
+                Arrow()
+                    .strokeBorder(.green, lineWidth: 10 * amount)
+                    .frame(width: 200)
+                    .offset(x: 50, y: -80)
+                    .blendMode(.screen)
+
+                Arrow()
+                    .strokeBorder(.blue, lineWidth: 10 * amount)
+                    .frame(width: 200)
+                    .blendMode(.screen)
+            }
+            .frame(width: 300, height: 300)
+
+            Slider(value: $amount)
+                .padding()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.black)
+        .ignoresSafeArea()
+        .onTapGesture {
+            withAnimation(.linear(duration: 1)) {
+                amount = (amount == 1.0) ? 0 : 1
+            }
+        }
+    }
+}
+
 struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
@@ -319,7 +380,7 @@ struct Spirograph: Shape {
     }
 }
 
-struct ContentView: View {
+struct SpirographContentView: View {
     @State private var innerRadius = 125.0
     @State private var outerRadius = 75.0
     @State private var distance = 25.0
