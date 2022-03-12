@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+extension String {
+    var isEmptyOrWhitespace: Bool {
+
+        // Check empty string
+        if self.isEmpty {
+            return true
+        }
+        // Trim and check empty string
+        return (self.trimmingCharacters(in: .whitespaces) == "")
+    }
+}
+
 class Order: ObservableObject, Codable {
     enum CodingKeys: CodingKey {
         case type, quantity, extraFrosting, addSprinkles, name, streetAddress, city, zip
@@ -35,7 +47,7 @@ class Order: ObservableObject, Codable {
     @Published var zip = ""
 
     var hasValidAddress: Bool {
-        if name.isEmpty || streetAddress.isEmpty || city.isEmpty || zip.isEmpty {
+        if name.isEmptyOrWhitespace || streetAddress.isEmptyOrWhitespace || city.isEmptyOrWhitespace || zip.isEmptyOrWhitespace {
             return false
         }
 
