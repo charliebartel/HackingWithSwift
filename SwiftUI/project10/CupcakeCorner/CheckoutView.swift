@@ -52,7 +52,7 @@ struct CheckoutView: View {
     }
 
     func placeOrder() async {
-        guard let encoded = try? JSONEncoder().encode(order) else {
+        guard let encoded = try? JSONEncoder().encode(order.model) else {
             print("Failed to encode order")
             return
         }
@@ -65,7 +65,7 @@ struct CheckoutView: View {
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
 
-            let decodedOrder = try JSONDecoder().decode(Order.self, from: data)
+            let decodedOrder = try JSONDecoder().decode(OrderDTO.self, from: data)
             confirmationMessage = "Your order for \(decodedOrder.quantity)x \(Order.types[decodedOrder.type].lowercased()) cupcakes is on its way!"
             showingConfirmation = true
         } catch {

@@ -9,45 +9,43 @@ import SwiftUI
 
 extension String {
     var isEmptyOrWhitespace: Bool {
-
-        // Check empty string
         if self.isEmpty {
             return true
         }
-        // Trim and check empty string
         return (self.trimmingCharacters(in: .whitespaces) == "")
     }
 }
 
-class Order: ObservableObject, Codable {
-    enum CodingKeys: CodingKey {
-        case type, quantity, extraFrosting, addSprinkles, name, streetAddress, city, zip
-    }
+struct OrderDTO: Codable {
+    var type: Int
+    var quantity: Int
+    var extraFrosting: Bool
+    var addSprinkles: Bool
+    var name: String
+    var streetAddress: String
+    var city: String
+    var zip: String
+}
 
+class Order: ObservableObject {
     static let types = ["Vanilla", "Strawberry", "Chocolate", "Rainbow"]
 
-    @Published var type = 0
-    @Published var quantity = 3
+    @Published var model: OrderDTO
 
     @Published var specialRequestEnabled = false {
         didSet {
             if specialRequestEnabled == false {
-                extraFrosting = false
-                addSprinkles = false
+                model.extraFrosting = false
+                model.addSprinkles = false
             }
         }
     }
 
-    @Published var extraFrosting = false
-    @Published var addSprinkles = false
-
-    @Published var name = ""
-    @Published var streetAddress = ""
-    @Published var city = ""
-    @Published var zip = ""
-
     var hasValidAddress: Bool {
-        if name.isEmptyOrWhitespace || streetAddress.isEmptyOrWhitespace || city.isEmptyOrWhitespace || zip.isEmptyOrWhitespace {
+        if model.name.isEmptyOrWhitespace ||
+            model.streetAddress.isEmptyOrWhitespace ||
+            model.city.isEmptyOrWhitespace ||
+            model.zip.isEmptyOrWhitespace {
             return false
         }
 
@@ -56,53 +54,32 @@ class Order: ObservableObject, Codable {
 
     var cost: Double {
         // $2 per cake
-        var cost = Double(quantity) * 2
+        var cost = Double(model.quantity) * 2
 
         // complicated cakes cost more
-        cost += (Double(type) / 2)
+        cost += (Double(model.type) / 2)
 
         // $1/cake for extra frosting
-        if extraFrosting {
-            cost += Double(quantity)
+        if model.extraFrosting {
+            cost += Double(model.quantity)
         }
 
         // $0.50/cake for sprinkles
-        if addSprinkles {
-            cost += Double(quantity) / 2
+        if model.addSprinkles {
+            cost += Double(model.quantity) / 2
         }
 
         return cost
     }
 
-    init() { }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(type, forKey: .type)
-        try container.encode(quantity, forKey: .quantity)
-
-        try container.encode(extraFrosting, forKey: .extraFrosting)
-        try container.encode(addSprinkles, forKey: .addSprinkles)
-
-        try container.encode(name, forKey: .name)
-        try container.encode(streetAddress, forKey: .streetAddress)
-        try container.encode(city, forKey: .city)
-        try container.encode(zip, forKey: .zip)
-    }
-
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        type = try container.decode(Int.self, forKey: .type)
-        quantity = try container.decode(Int.self, forKey: .quantity)
-
-        extraFrosting = try container.decode(Bool.self, forKey: .extraFrosting)
-        addSprinkles = try container.decode(Bool.self, forKey: .addSprinkles)
-
-        name = try container.decode(String.self, forKey: .name)
-        streetAddress = try container.decode(String.self, forKey: .streetAddress)
-        city = try container.decode(String.self, forKey: .city)
-        zip = try container.decode(String.self, forKey: .zip)
+    init() {
+        self.model = OrderDTO(type: 2,
+                               quantity: 5,
+                               extraFrosting: false,
+                               addSprinkles: false,
+                               name: "test name",
+                               streetAddress: "test address",
+                               city: "test city",
+                               zip: "test zip")
     }
 }
