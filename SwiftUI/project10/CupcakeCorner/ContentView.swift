@@ -15,8 +15,9 @@ struct ContentView: View {
             Form {
                 Section {
                     Picker("Select your cake type", selection: $order.model.type) {
-                        ForEach(Order.types.indices) {
-                            Text(Order.types[$0])
+                        ForEach(CakeType.allCases, id: \.self) { value in
+                            Text(value.rawValue)
+                                .tag(value)
                         }
                     }
 

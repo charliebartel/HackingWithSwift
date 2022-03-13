@@ -17,7 +17,7 @@ extension String {
 }
 
 struct OrderDTO: Codable {
-    var type: Int
+    var type: CakeType
     var quantity: Int
     var extraFrosting: Bool
     var addSprinkles: Bool
@@ -27,9 +27,14 @@ struct OrderDTO: Codable {
     var zip: String
 }
 
-class Order: ObservableObject {
-    static let types = ["Vanilla", "Strawberry", "Chocolate", "Rainbow"]
+enum CakeType: String, Codable, CaseIterable {    
+    case vanilla
+    case strawberry
+    case chocolate
+    case rainbow
+}
 
+class Order: ObservableObject {
     @Published var model: OrderDTO
 
     @Published var specialRequestEnabled = false {
@@ -56,9 +61,6 @@ class Order: ObservableObject {
         // $2 per cake
         var cost = Double(model.quantity) * 2
 
-        // complicated cakes cost more
-        cost += (Double(model.type) / 2)
-
         // $1/cake for extra frosting
         if model.extraFrosting {
             cost += Double(model.quantity)
@@ -73,13 +75,13 @@ class Order: ObservableObject {
     }
 
     init() {
-        self.model = OrderDTO(type: 2,
-                               quantity: 5,
-                               extraFrosting: false,
-                               addSprinkles: false,
-                               name: "test name",
-                               streetAddress: "test address",
-                               city: "test city",
-                               zip: "test zip")
+        self.model = OrderDTO(type: .chocolate,
+                                quantity: 15,
+                                extraFrosting: false,
+                                addSprinkles: false,
+                                name: "Ruth Bartel",
+                                streetAddress: "Purdue",
+                                city: "Bikemont",
+                                zip: "80503")
     }
 }
