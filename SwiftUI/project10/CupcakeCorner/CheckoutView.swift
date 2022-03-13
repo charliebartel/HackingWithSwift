@@ -31,7 +31,15 @@ struct CheckoutView: View {
 
                 Button("Place Order") {
                     Task {
-                        await placeOrder()
+                        do {
+                            let url = URL(string: "https://reqres.in/api/cupcakes")!
+                            let result = try await order.postOrder(model: order.model, url: url)
+                            confirmationMessage = "Your order for \(result.quantity)x \(result.type.rawValue.lowercased()) cupcakes is on its way!"
+                            showingConfirmation = true
+                        } catch {
+                            confirmationMessage = "Your order failed."
+                            showingError = true
+                        }
                     }
                 }
                 .padding()
@@ -48,30 +56,6 @@ struct CheckoutView: View {
             Button("OK") { }
         } message: {
             Text(confirmationMessage)
-        }
-    }
-
-    func placeOrder() async {
-        guard let encoded = try? JSONEncoder().encode(order.model) else {
-            print("Failed to encode order")
-            return
-        }
-
-        let url = URL(string: "https://reqres.in/api/cupcakes")!
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-
-        do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-
-            let decodedOrder = try JSONDecoder().decode(OrderDTO.self, from: data)
-            confirmationMessage = "Your order for \(decodedOrder.quantity)x \(decodedOrder.type.rawValue.lowercased()) cupcakes is on its way!"
-            showingConfirmation = true
-        } catch {
-            print("Checkout failed.")
-            confirmationMessage = "Your order failed."
-            showingError = true
         }
     }
 }

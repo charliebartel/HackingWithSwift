@@ -84,4 +84,14 @@ class Order: ObservableObject {
                                 city: "Bikemont",
                                 zip: "80503")
     }
+
+    func postOrder<T>(model: T, url: URL) async throws -> T where T: Codable {
+        let encoded = try JSONEncoder().encode(model)
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+
+        let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
+        return try JSONDecoder().decode(T.self, from: data)
+    }
 }
