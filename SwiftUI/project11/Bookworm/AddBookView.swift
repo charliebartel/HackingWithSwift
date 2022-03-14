@@ -7,6 +7,15 @@
 
 import SwiftUI
 
+extension String {
+    var isEmptyOrWhiteSpace: Bool {
+        if self.isEmpty {
+            return true
+        }
+        return self.trimmingCharacters(in: .whitespaces) == ""
+    }
+}
+
 struct AddBookView: View {
     @Environment(\.managedObjectContext) var moc
     @Environment(\.dismiss) var dismiss
@@ -16,6 +25,7 @@ struct AddBookView: View {
     @State private var rating = 3
     @State private var genre = ""
     @State private var review = ""
+    @State private var showingAlert = false
 
     let genres = ["Fantasy", "Horror", "Kids", "Mystery", "Poetry", "Romance", "Thriller"]
 
@@ -42,6 +52,15 @@ struct AddBookView: View {
 
                 Section {
                     Button("Save") {
+
+                        if title.isEmptyOrWhiteSpace ||
+                            author.isEmptyOrWhiteSpace ||
+                            review.isEmptyOrWhiteSpace ||
+                            genre.isEmptyOrWhiteSpace {
+                            showingAlert = true
+                            return
+                        }
+
                         let newBook = Book(context: moc)
                         newBook.id = UUID()
                         newBook.title = title
@@ -56,6 +75,11 @@ struct AddBookView: View {
                 }
             }
             .navigationTitle("Add Book")
+            .alert("Missing Data", isPresented: $showingAlert) {
+                Button("Ok") { }
+            } message: {
+                Text("Enter data")
+            }
         }
     }
 }
