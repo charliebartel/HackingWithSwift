@@ -14,6 +14,13 @@ struct DetailView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showingDeleteAlert = false
 
+    var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        formatter.timeStyle = .long
+        return formatter
+    }
+
     var body: some View {
         ScrollView {
             ZStack(alignment: .bottomTrailing) {
@@ -40,6 +47,10 @@ struct DetailView: View {
 
             RatingView(rating: .constant(Int(book.rating)))
                 .font(.largeTitle)
+
+            Text(dateFormatter.string(from: book.date ?? Date.now))
+                .font(.title2)
+                .padding(10)
         }
         .navigationTitle(book.title ?? "Unknown Book")
         .navigationBarTitleDisplayMode(.inline)
