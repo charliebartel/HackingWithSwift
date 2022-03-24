@@ -57,13 +57,15 @@ struct OneToManyRelationshipsContentView: View {
     }
 }
 
-struct DynamicFilteringContentView: View {
+struct ContentView: View {
     @Environment(\.managedObjectContext) var moc
     @State private var lastNameFilter = "A"
 
     var body: some View {
         VStack {
-            FilteredList(filterKey: "lastName", filterValue: lastNameFilter) { (singer: Singer) in
+            FilteredList(filterKey: "lastName",
+                         predicate: .contains,
+                         filterValue: lastNameFilter) { (singer: Singer) in
                 Text("\(singer.wrappedFirstName) \(singer.wrappedLastName)")
             }
 
@@ -128,7 +130,7 @@ struct ShipContentView: View {
 }
 
 
-struct ContentView: View {
+struct WizardContentView: View {
     @Environment(\.managedObjectContext) var moc
 
     @FetchRequest(entity: Wizard.entity(), sortDescriptors: []) var wizards: FetchedResults<Wizard>

@@ -10,6 +10,15 @@ import CoreData
 import SwiftUI
 
 struct FilteredList<T: NSManagedObject, Content: View>: View {
+
+    enum StringComparisons: String {
+        case beginsWith = "BEGINSWITH"
+        case contains = "CONTAINS"
+        case endsWith = "ENDSWITH"
+        case like = "LIKE"
+        case matches = "MATCHES"
+    }
+
     var fetchRequest: FetchRequest<T>
     var singers: FetchedResults<T> { fetchRequest.wrappedValue }
 
@@ -22,8 +31,10 @@ struct FilteredList<T: NSManagedObject, Content: View>: View {
         }
     }
 
-    init(filterKey: String, filterValue: String, @ViewBuilder content: @escaping (T) -> Content) {
-        fetchRequest = FetchRequest<T>(entity: T.entity(), sortDescriptors: [], predicate: NSPredicate(format: "%K BEGINSWITH %@", filterKey, filterValue))
+    init(filterKey: String, predicate: StringComparisons, filterValue: String, @ViewBuilder content: @escaping (T) -> Content) {
+        fetchRequest = FetchRequest<T>(entity: T.entity(),
+                                       sortDescriptors: [],
+                                       predicate: NSPredicate(format: "%K \(predicate.rawValue) %@", filterKey, filterValue))
         self.content = content
     }
 }
