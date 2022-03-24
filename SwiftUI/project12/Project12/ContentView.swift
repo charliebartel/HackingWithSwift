@@ -60,12 +60,14 @@ struct OneToManyRelationshipsContentView: View {
 struct ContentView: View {
     @Environment(\.managedObjectContext) var moc
     @State private var lastNameFilter = "A"
+    private var sort = SortDescriptor<Singer>(\.firstName, order: .reverse)
 
     var body: some View {
         VStack {
             FilteredList(filterKey: "lastName",
                          predicate: .contains,
-                         filterValue: lastNameFilter) { (singer: Singer) in
+                         filterValue: lastNameFilter,
+                         sortDescriptors: [sort]) { (singer: Singer) in
                 Text("\(singer.wrappedFirstName) \(singer.wrappedLastName)")
             }
 
