@@ -31,8 +31,16 @@ struct EditView: View {
                                 + Text(page.description)
                                 .italic()
                         }
-                    case .failed:
+                    case .failed(let error):
                         Text("Please try again later.")
+                        if let networkError = error as? NetworkError {
+                            switch networkError {
+                            case let .invalidHTTPCode(code):
+                                Text("code: \(code ?? 0)")
+                            default:
+                                Text("failure")
+                            }
+                        }
                     }
                 }
             }

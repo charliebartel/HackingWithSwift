@@ -17,10 +17,15 @@ protocol AppleURLSession {
 
 extension URLSession: AppleURLSession {}
 
+enum NetworkError: Error {
+    case invalidHTTPCode(code: Int?)
+    case noDataReturned
+}
+
 extension EditView {
     @MainActor class ViewModel: ObservableObject {
         enum LoadingState {
-            case loading, loaded, failed
+            case loading, loaded, failed(error: Error)
         }
 
         @Published var name: String
@@ -50,11 +55,6 @@ extension EditView {
             return url
         }
 
-        enum NetworkError: Error {
-            case invalidHTTPCode(code: Int?)
-            case noDataReturned
-        }
-
         // Async / Await
         func fetchNearbyPlaces() async {
             do {
@@ -62,7 +62,7 @@ extension EditView {
                 pages = items.query.pages.values.sorted()
                 loadingState = .loaded
             } catch {
-                loadingState = .failed
+                loadingState = .failed(error: error)
                 if let networkError = error as? NetworkError {
                     switch networkError {
                     case let .invalidHTTPCode(code):
@@ -89,7 +89,7 @@ extension EditView {
                     switch completion {
                     case let .failure(error):
                         print("Couldn't get result: \(error)")
-                        self.loadingState = .failed
+                        self.loadingState = .failed(error: error)
                         if let networkError = error as? NetworkError {
                             switch networkError {
                             case let .invalidHTTPCode(code):
@@ -129,7 +129,7 @@ extension EditView {
             returnOnMain(url: nearbyUrl) { result in
                 switch result {
                 case .failure(let error):
-                    self.loadingState = .failed
+                    self.loadingState = .failed(error: error)
                     if let networkError = error as? NetworkError {
                         switch networkError {
                         case let .invalidHTTPCode(code):
