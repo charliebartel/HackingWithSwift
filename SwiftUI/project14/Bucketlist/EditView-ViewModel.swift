@@ -98,8 +98,8 @@ extension EditView {
         func fetchDataPublisher<Value>(url: URL) -> AnyPublisher<Value, Error> where Value: Decodable {
             return URLSession.shared.dataTaskPublisher(for: url)
                 .tryMap { element -> Data in
-                    if let httpResponse = element.response as? HTTPURLResponse, !(200 ..< 300).contains(httpResponse.statusCode) {
-                        throw NetworkError.invalidHTTPCode(code: httpResponse.statusCode)
+                    if let statusCode = (element.response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(statusCode) {
+                        throw NetworkError.invalidHTTPCode(code: statusCode)
                     }
                     return element.data
                 }
