@@ -60,7 +60,7 @@ struct EditView: View {
                 //await viewModel.fetchNearbyPlaces()
             }
             .onAppear {
-                viewModel.fetchPlaces()
+                viewModel.fetchNearby()
             }
         }
     }
