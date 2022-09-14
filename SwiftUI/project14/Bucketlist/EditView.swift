@@ -49,7 +49,10 @@ struct EditView: View {
                 }
             }
             .task {
-                await viewModel.fetchNearbyPlaces()
+                //await viewModel.fetchNearbyPlaces()
+            }
+            .onAppear {
+                viewModel.fetchNearby()
             }
         }
     }

@@ -23,6 +23,7 @@ extension EditView {
 
         var location: Location
         var onSave: (Location) -> Void
+        var subscriptions = Set<AnyCancellable>()
 
         init(location: Location, onSave: @escaping (Location) -> Void) {
             self.location = location
@@ -34,7 +35,7 @@ extension EditView {
 
         func fetchNearbyPlaces() async {
             do {
-                let items: Result = try await fetchData(url: nearbyUrl)
+                let items: WikiResult = try await fetchData(url: nearbyUrl)
                 pages = items.query.pages.values.sorted()
                 loadingState = .loaded
             } catch {
@@ -46,6 +47,29 @@ extension EditView {
                     }
                 }
             }
+        }
+
+        func fetchNearby() {
+            fetchWikiResult()
+                .sink(receiveCompletion: { (completion) in
+                    switch completion {
+                    case let .failure(error):
+                        print("Couldn't get result: \(error)")
+                        self.loadingState = .failed
+                        if let networkError = error as? NetworkError {
+                            switch networkError {
+                            case let .invalidHTTPCode(code):
+                                print("failure: \(code ?? 0)")
+                            }
+                        }
+                    case .finished: break
+                    }
+                }) { result in
+                    self.pages = result.query.pages.values.sorted()
+                    self.loadingState = .loaded
+                }
+                .store(in: &subscriptions)
+
         }
 
         var nearbyUrl: URL {
@@ -65,6 +89,10 @@ extension EditView {
                 throw NetworkError.invalidHTTPCode(code: statusCode)
             }
             return try JSONDecoder().decode(Value.self, from: data)
+        }
+
+        func fetchWikiResult() -> AnyPublisher<WikiResult, Error> {
+            return fetchDataPublisher(url: nearbyUrl)
         }
 
         func fetchDataPublisher<Value>(url: URL) -> AnyPublisher<Value, Error> where Value: Decodable {

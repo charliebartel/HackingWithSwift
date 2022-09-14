@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Result: Codable {
+struct WikiResult: Codable {
     let query: Query
 }
 
