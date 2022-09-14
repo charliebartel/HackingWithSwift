@@ -115,14 +115,36 @@ extension EditView {
         }
 
         // Closures
-        func fetchOnMain<Value>(url: URL, callback: @escaping (Result<Value, Error>) -> ()) where Value: Decodable {
-            DispatchQueue.main.async {
-                return self.fetchDataClosure(url: url, callback: callback)
+        func fetchPlaces() {
+            returnOnMain(url: nearbyUrl) { result in
+                switch result {
+                case .failure(let error):
+                    self.loadingState = .failed
+                    if let networkError = error as? NetworkError {
+                        switch networkError {
+                        case let .invalidHTTPCode(code):
+                            print("failure: \(code ?? 0)")
+                        default:
+                            print("failure")
+                        }
+                    }
+                case .success(let items):
+                    self.pages = items.query.pages.values.sorted()
+                    self.loadingState = .loaded
+                }
+            }
+        }
+
+        func returnOnMain(url: URL, callback: @escaping (Result<WikiResult, Error>) -> ()) {
+            fetchDataClosure(url: url) { result in
+                DispatchQueue.main.async {
+                    callback(result)
+                }
             }
         }
 
         func fetchDataClosure<Value>(url: URL, callback: @escaping (Result<Value, Error>) -> ()) where Value: Decodable {
-            URLSession.shared.dataTask(with: url) { data, response, error in
+            let task = URLSession.shared.dataTask(with: url) { data, response, error in
                 if let error = error {
                     callback(.failure(error))
                     return
@@ -142,6 +164,7 @@ extension EditView {
                     callback(.failure(error))
                 }
             }
+            task.resume()
         }
     }
 }
