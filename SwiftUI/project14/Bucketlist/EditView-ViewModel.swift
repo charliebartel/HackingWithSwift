@@ -33,9 +33,22 @@ extension EditView {
             description = location.description
         }
 
+        var nearbyUrl: URL {
+            let urlString = "https://en.wikipedia.org/w/api.php?ggscoord=\(location.coordinate.latitude)%7C\(location.coordinate.longitude)&action=query&prop=coordinates%7Cpageimages%7Cpageterms&colimit=50&piprop=thumbnail&pithumbsize=500&pilimit=50&wbptterms=description&generator=geosearch&ggsradius=10000&ggslimit=50&format=json"
+
+            guard let url = URL(string: urlString) else { fatalError() }
+            return url
+        }
+
+        enum NetworkError: Error {
+            case invalidHTTPCode(code: Int?)
+            case noDataReturned
+        }
+
+        // Async / Await
         func fetchNearbyPlaces() async {
             do {
-                let items: WikiResult = try await fetchData(url: nearbyUrl)
+                let items: WikiResult = try await fetchDataAsync(url: nearbyUrl)
                 pages = items.query.pages.values.sorted()
                 loadingState = .loaded
             } catch {
@@ -44,11 +57,22 @@ extension EditView {
                     switch networkError {
                     case let .invalidHTTPCode(code):
                         print("failure: \(code ?? 0)")
+                    default:
+                        print("failure")
                     }
                 }
             }
         }
 
+        func fetchDataAsync<Value>(url: URL) async throws -> Value where Value: Decodable {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            if let statusCode = (response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(statusCode) {
+                throw NetworkError.invalidHTTPCode(code: statusCode)
+            }
+            return try JSONDecoder().decode(Value.self, from: data)
+        }
+
+        // Combine
         func fetchNearby() {
             fetchWikiResult()
                 .sink(receiveCompletion: { (completion) in
@@ -60,6 +84,8 @@ extension EditView {
                             switch networkError {
                             case let .invalidHTTPCode(code):
                                 print("failure: \(code ?? 0)")
+                            default:
+                                print("failure")
                             }
                         }
                     case .finished: break
@@ -69,26 +95,6 @@ extension EditView {
                     self.loadingState = .loaded
                 }
                 .store(in: &subscriptions)
-
-        }
-
-        var nearbyUrl: URL {
-            let urlString = "https://en.wikipedia.org/w/api.php?ggscoord=\(location.coordinate.latitude)%7C\(location.coordinate.longitude)&action=query&prop=coordinates%7Cpageimages%7Cpageterms&colimit=50&piprop=thumbnail&pithumbsize=500&pilimit=50&wbptterms=description&generator=geosearch&ggsradius=10000&ggslimit=50&format=json"
-
-            guard let url = URL(string: urlString) else { fatalError() }
-            return url
-        }
-
-        enum NetworkError: Error {
-            case invalidHTTPCode(code: Int?)
-        }
-
-        func fetchData<Value>(url: URL) async throws -> Value where Value: Decodable {
-            let (data, response) = try await URLSession.shared.data(from: url)
-            if let statusCode = (response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(statusCode) {
-                throw NetworkError.invalidHTTPCode(code: statusCode)
-            }
-            return try JSONDecoder().decode(Value.self, from: data)
         }
 
         func fetchWikiResult() -> AnyPublisher<WikiResult, Error> {
@@ -106,6 +112,36 @@ extension EditView {
                 .decode(type: Value.self, decoder: JSONDecoder())
                 .receive(on: DispatchQueue.main)
                 .eraseToAnyPublisher()
+        }
+
+        // Closures
+        func fetchOnMain<Value>(url: URL, callback: @escaping (Result<Value, Error>) -> ()) where Value: Decodable {
+            DispatchQueue.main.async {
+                return self.fetchDataClosure(url: url, callback: callback)
+            }
+        }
+
+        func fetchDataClosure<Value>(url: URL, callback: @escaping (Result<Value, Error>) -> ()) where Value: Decodable {
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                if let error = error {
+                    callback(.failure(error))
+                    return
+                }
+                if let statusCode = (response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(statusCode) {
+                    callback(.failure(NetworkError.invalidHTTPCode(code: statusCode)))
+                    return
+                }
+                guard let data = data else {
+                    callback(.failure(NetworkError.noDataReturned))
+                    return
+                }
+                do {
+                    let result = try JSONDecoder().decode(Value.self, from: data)
+                    callback(.success(result))
+                } catch {
+                    callback(.failure(error))
+                }
+            }
         }
     }
 }
