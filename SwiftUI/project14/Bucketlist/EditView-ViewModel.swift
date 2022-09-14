@@ -32,21 +32,35 @@ extension EditView {
         }
 
         func fetchNearbyPlaces() async {
-            let urlString = "https://en.wikipedia.org/w/api.php?ggscoord=\(location.coordinate.latitude)%7C\(location.coordinate.longitude)&action=query&prop=coordinates%7Cpageimages%7Cpageterms&colimit=50&piprop=thumbnail&pithumbsize=500&pilimit=50&wbptterms=description&generator=geosearch&ggsradius=10000&ggslimit=50&format=json"
-
-            guard let url = URL(string: urlString) else {
-                print("Bad URL: \(urlString)")
-                return
-            }
-
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                let items = try JSONDecoder().decode(Result.self, from: data)
+                let items: Result = try await fetchData(url: nearbyUrl)
                 pages = items.query.pages.values.sorted()
                 loadingState = .loaded
             } catch {
                 loadingState = .failed
             }
+        }
+
+        var nearbyUrl: URL {
+            let urlString = "https://en.wikipedia.org/w/api.php?ggscoord=\(location.coordinate.latitude)%7C\(location.coordinate.longitude)&action=query&prop=coordinates%7Cpageimages%7Cpageterms&colimit=50&piprop=thumbnail&pithumbsize=500&pilimit=50&wbptterms=description&generator=geosearch&ggsradius=10000&ggslimit=50&format=json"
+
+            guard let url = URL(string: urlString) else { fatalError() }
+            return url
+        }
+
+        enum NetworkError : Error {
+            case invalidHTTPCode(code: Int?)
+        }
+
+        func fetchData<Value>(url: URL) async throws -> Value where Value: Decodable {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let statusCode = (response as? HTTPURLResponse)?.statusCode else {
+                throw NetworkError.invalidHTTPCode(code: nil)
+            }
+            guard (200 ..< 300).contains(statusCode) else {
+                throw NetworkError.invalidHTTPCode(code: statusCode)
+            }
+            return try JSONDecoder().decode(Value.self, from: data)
         }
     }
 }
