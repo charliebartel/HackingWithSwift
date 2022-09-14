@@ -60,6 +60,6 @@ struct EditView: View {
 
 struct EditView_Previews: PreviewProvider {
     static var previews: some View {
-        EditView(viewModel: EditView.ViewModel(location: Location.example) { _ in })
+        EditView(viewModel: EditView.ViewModel(session: URLSession.shared, location: Location.example) { _ in })
     }
 }

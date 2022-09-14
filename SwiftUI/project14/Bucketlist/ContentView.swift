@@ -59,7 +59,7 @@ struct ContentView: View {
             }
         }
         .sheet(item: $viewModel.selectedPlace) { place in
-            EditView(viewModel: EditView.ViewModel(location: place) { newLocation in
+            EditView(viewModel: EditView.ViewModel(session: URLSession.shared, location: place) { newLocation in
                 viewModel.update(location: newLocation)
             })
         }

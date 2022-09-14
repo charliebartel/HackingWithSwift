@@ -9,6 +9,14 @@ import Combine
 import Foundation
 import SwiftUI
 
+protocol AppleURLSession {
+    func data(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse)
+    func dataTaskPublisher(for url: URL) -> URLSession.DataTaskPublisher
+    func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask
+}
+
+extension URLSession: AppleURLSession {}
+
 extension EditView {
     @MainActor class ViewModel: ObservableObject {
         enum LoadingState {
@@ -23,11 +31,13 @@ extension EditView {
 
         var location: Location
         var onSave: (Location) -> Void
+        let session: AppleURLSession
         var subscriptions = Set<AnyCancellable>()
 
-        init(location: Location, onSave: @escaping (Location) -> Void) {
+        init(session: AppleURLSession, location: Location, onSave: @escaping (Location) -> Void) {
             self.location = location
             self.onSave = onSave
+            self.session = session
 
             name = location.name
             description = location.description
@@ -65,7 +75,7 @@ extension EditView {
         }
 
         func fetchDataAsync<Value>(url: URL) async throws -> Value where Value: Decodable {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await session.data(from: url, delegate: nil)
             if let statusCode = (response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(statusCode) {
                 throw NetworkError.invalidHTTPCode(code: statusCode)
             }
@@ -102,7 +112,7 @@ extension EditView {
         }
 
         func fetchDataPublisher<Value>(url: URL) -> AnyPublisher<Value, Error> where Value: Decodable {
-            return URLSession.shared.dataTaskPublisher(for: url)
+            return session.dataTaskPublisher(for: url)
                 .tryMap { element -> Data in
                     if let statusCode = (element.response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(statusCode) {
                         throw NetworkError.invalidHTTPCode(code: statusCode)
@@ -144,7 +154,7 @@ extension EditView {
         }
 
         func fetchDataClosure<Value>(url: URL, callback: @escaping (Result<Value, Error>) -> ()) where Value: Decodable {
-            let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            let task = session.dataTask(with: url) { data, response, error in
                 if let error = error {
                     callback(.failure(error))
                     return
