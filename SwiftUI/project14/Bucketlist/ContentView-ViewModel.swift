@@ -16,7 +16,7 @@ extension ContentView {
         @Published private(set) var locations: [Location]
         @Published var selectedPlace: Location?
 
-        let savePath = FileManager.documentsDirectory.appendingPathComponent("SavedPlaces")
+        let savePath = FileManager.documentsDirectory.appendingPathComponent("SavedPlaces2")
 
         init() {
             do {

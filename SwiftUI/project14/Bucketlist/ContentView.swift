@@ -59,9 +59,9 @@ struct ContentView: View {
             }
         }
         .sheet(item: $viewModel.selectedPlace) { place in
-            EditView(location: place) { newLocation in
+            EditView(viewModel: EditView.ViewModel(location: place) { newLocation in
                 viewModel.update(location: newLocation)
-            }
+            })
         }
     }
 }

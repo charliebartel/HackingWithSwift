@@ -24,6 +24,7 @@ struct Page: Codable, Comparable {
         terms?["description"]?.first ?? "No further information"
     }
 
+    // TODO remove this
     static func <(lhs: Page, rhs: Page) -> Bool {
         lhs.title < rhs.title
     }
