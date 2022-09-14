@@ -63,14 +63,6 @@ extension EditView {
                 loadingState = .loaded
             } catch {
                 loadingState = .failed(error: error)
-                if let networkError = error as? NetworkError {
-                    switch networkError {
-                    case let .invalidHTTPCode(code):
-                        print("failure: \(code ?? 0)")
-                    default:
-                        print("failure")
-                    }
-                }
             }
         }
 
@@ -88,16 +80,7 @@ extension EditView {
                 .sink(receiveCompletion: { (completion) in
                     switch completion {
                     case let .failure(error):
-                        print("Couldn't get result: \(error)")
                         self.loadingState = .failed(error: error)
-                        if let networkError = error as? NetworkError {
-                            switch networkError {
-                            case let .invalidHTTPCode(code):
-                                print("failure: \(code ?? 0)")
-                            default:
-                                print("failure")
-                            }
-                        }
                     case .finished: break
                     }
                 }) { result in
@@ -130,14 +113,6 @@ extension EditView {
                 switch result {
                 case .failure(let error):
                     self.loadingState = .failed(error: error)
-                    if let networkError = error as? NetworkError {
-                        switch networkError {
-                        case let .invalidHTTPCode(code):
-                            print("failure: \(code ?? 0)")
-                        default:
-                            print("failure")
-                        }
-                    }
                 case .success(let items):
                     self.pages = items.query.pages.values.sorted()
                     self.loadingState = .loaded
