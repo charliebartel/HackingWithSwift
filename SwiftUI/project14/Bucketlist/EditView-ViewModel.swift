@@ -5,6 +5,7 @@
 //  Created by Charles Bartel on 9/13/22.
 //
 
+import Combine
 import Foundation
 import SwiftUI
 
@@ -27,8 +28,8 @@ extension EditView {
             self.location = location
             self.onSave = onSave
 
-            self.name = location.name
-            self.description = location.description
+            name = location.name
+            description = location.description
         }
 
         func fetchNearbyPlaces() async {
@@ -38,6 +39,12 @@ extension EditView {
                 loadingState = .loaded
             } catch {
                 loadingState = .failed
+                if let networkError = error as? NetworkError {
+                    switch networkError {
+                    case let .invalidHTTPCode(code):
+                        print("failure: \(code ?? 0)")
+                    }
+                }
             }
         }
 
@@ -48,19 +55,29 @@ extension EditView {
             return url
         }
 
-        enum NetworkError : Error {
+        enum NetworkError: Error {
             case invalidHTTPCode(code: Int?)
         }
 
         func fetchData<Value>(url: URL) async throws -> Value where Value: Decodable {
             let (data, response) = try await URLSession.shared.data(from: url)
-            guard let statusCode = (response as? HTTPURLResponse)?.statusCode else {
-                throw NetworkError.invalidHTTPCode(code: nil)
-            }
-            guard (200 ..< 300).contains(statusCode) else {
+            if let statusCode = (response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(statusCode) {
                 throw NetworkError.invalidHTTPCode(code: statusCode)
             }
             return try JSONDecoder().decode(Value.self, from: data)
+        }
+
+        func fetchDataPublisher<Value>(url: URL) -> AnyPublisher<Value, Error> where Value: Decodable {
+            return URLSession.shared.dataTaskPublisher(for: url)
+                .tryMap { element -> Data in
+                    if let httpResponse = element.response as? HTTPURLResponse, !(200 ..< 300).contains(httpResponse.statusCode) {
+                        throw NetworkError.invalidHTTPCode(code: httpResponse.statusCode)
+                    }
+                    return element.data
+                }
+                .decode(type: Value.self, decoder: JSONDecoder())
+                .receive(on: DispatchQueue.main)
+                .eraseToAnyPublisher()
         }
     }
 }

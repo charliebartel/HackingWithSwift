@@ -27,8 +27,8 @@ struct EditView: View {
                         ForEach(viewModel.pages, id: \.pageid) { page in
                             Text(page.title)
                                 .font(.headline)
-                            + Text(": ")
-                            + Text(page.description)
+                                + Text(": ")
+                                + Text(page.description)
                                 .italic()
                         }
                     case .failed:
@@ -57,6 +57,6 @@ struct EditView: View {
 
 struct EditView_Previews: PreviewProvider {
     static var previews: some View {
-        EditView(viewModel: EditView.ViewModel(location: Location.example) { _ in } )
+        EditView(viewModel: EditView.ViewModel(location: Location.example) { _ in })
     }
 }
